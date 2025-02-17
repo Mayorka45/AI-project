@@ -7,171 +7,146 @@ from generator import generateRandomFifteenPuzzle, create_and_save_puzzles
 from search import aStarSearch
 from search import depthFirstSearch, breadthFirstSearch, uniformCostSearch, h3_manhattan_distance
 
-def validate_and_prepare_puzzle(puzzle_state):
-    """
-    Ensures that the puzzle state is a list of 16 integers.
-    Converts it into a valid format for FifteenPuzzleState if necessary.
-    """
-    # Flatten the list if it is 2D and ensure it's a 16-element list
-    if isinstance(puzzle_state, list) and all(isinstance(row, list) for row in puzzle_state):
-        # Flatten the 2D array
-        puzzle_state = [tile for row in puzzle_state for tile in row]
 
-    # Check if the puzzle state contains exactly 16 elements
-    if len(puzzle_state) != 16:
-        raise ValueError(f"Invalid puzzle state: {puzzle_state}. It must contain exactly 16 numbers.")
+def process_puzzle(puzzle_data):
+    """Convert and validate puzzle input into a proper 16-element list."""
+    if isinstance(puzzle_data, list) and all(isinstance(tier, list) for tier in puzzle_data):
+        puzzle_data = [num for tier in puzzle_data for num in tier]
 
-    return puzzle_state
+    if len(puzzle_data) != 16:
+        raise ValueError(f"Invalid puzzle configuration: {puzzle_data}. Must contain 16 elements.")
 
-def run_strategic_comparison(puzzles, results_file):
-    """
-    Run comparisons for A* using different heuristics and write results to a CSV file.
-    """
-    Strategies = [
+    return puzzle_data
+
+
+def execute_strategy_comparison(puzzle_set, output_file):
+    """Execute different search algorithms and record performance metrics."""
+    search_plans = [
         ("DFS", depthFirstSearch),
         ("BFS", breadthFirstSearch),
         ("UCS", uniformCostSearch),
         ("A* with Manhattan Distance", h3_manhattan_distance)
     ]
 
-    # Open the CSV file to write the results
-    with open(results_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(
-            ["PuzzleID", "Strategy", "Solved", "Solution Depth", "Expanded Nodes", "Max Fringe Size", "Execution Time"]
-        )
+    with open(output_file, 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow([
+            "PuzzleID", "Strategy", "Solved", "Solution Depth",
+            "Expanded Nodes", "Max Fringe Size", "Execution Time"
+        ])
 
-        # Iterate through the list of puzzles and run the comparisons
-        for idx, puzzle_state in enumerate(puzzles, 1):
-            print(f"Running comparisons for puzzle {idx}...")
+        for puzzle_num, puzzle_instance in enumerate(puzzle_set, 1):
+            print(f"Processing puzzle #{puzzle_num}...")
 
             try:
-                # Validate and prepare the puzzle state
-                valid_puzzle_state = validate_and_prepare_puzzle(puzzle_state)
-                puzzle = EightPuzzleState(valid_puzzle_state)
+                valid_puzzle = process_puzzle(puzzle_instance)
+                puzzle_obj = EightPuzzleState(valid_puzzle)
+                problem_instance = EightPuzzleSearchProblem(puzzle_obj)
 
-                # Create the search problem
-                problem = EightPuzzleSearchProblem(puzzle)
+                method_index = 0
+                for strategy_name, search_method in search_plans:
+                    nodes_expanded = 0
+                    max_fringe = 0
 
+                    def monitor_fringe(fringe):
+                        nonlocal max_fringe
+                        max_fringe = max(max_fringe, fringe.count)
 
-                i=0
-                name="UFS"
-                best_heuristic=[0,0,0,0]
-                # Track expanded nodes and fringe size locally
-                for name, strategy in Strategies:
-                    expanded_nodes = 0  # Reset expanded node count
-                    max_fringe_size = 0  # Reset max fringe size
+                    def count_expansion():
+                        nonlocal nodes_expanded
+                        nodes_expanded += 1
 
-                    def track_fringe(fringe):
-                        """Utility to update the max fringe size."""
-                        nonlocal max_fringe_size
-                        max_fringe_size = max(max_fringe_size, fringe.count)
+                    start_timer = time.perf_counter()
 
-                    def track_expansion():
-                        """Utility to increment the expanded node counter."""
-                        nonlocal expanded_nodes
-                        expanded_nodes += 1
+                    if method_index < 3:  # For DFS, BFS, UCS
+                        solution, max_fringe, nodes_expanded = search_method(problem_instance)
+                    else:  # For A* with Manhattan
+                        solution = aStarSearch(problem_instance, search_method, monitor_fringe, count_expansion)
 
-                    start_time = time.perf_counter()
+                    end_timer = time.perf_counter()
 
-                    if(i%4!=3):
-                        solution, max_fringe_size, expanded_nodes = strategy(problem)
-                    else:
-                        solution = aStarSearch(problem, strategy, track_fringe, track_expansion)
+                    is_solved = bool(solution)
+                    solution_length = len(solution) if is_solved else 0
+                    processing_time = end_timer - start_timer
 
-                    end_time = time.perf_counter()
-
-
-                    solved = bool(solution)
-                    depth = len(solution) if solved else "N/A"
-                    execution_time = end_time - start_time
-                    if not solved:
+                    if not is_solved:
                         break
 
-                    i=i+1
-                    writer.writerow([idx, name, solved, depth, expanded_nodes, max_fringe_size, execution_time])
+                    csv_writer.writerow([
+                        puzzle_num,
+                        strategy_name,
+                        is_solved,
+                        solution_length,
+                        nodes_expanded,
+                        max_fringe,
+                        f"{processing_time:.4f}"
+                    ])
 
-            except ValueError as e:
-                print(f"Error processing puzzle {idx}: {e}")
+                    method_index += 1
 
-def analyze_result(results_file):
-        """
-        Analyze the results from the CSV file to find the heuristic that expanded the least nodes,
-        had the least execution time, and the least max fringe size.
-        """
-        Strategies_scores = {
-            "DFS": {"expanded_nodes": 0, "execution_time": 0, "max_fringe": 0, "count": 0},
-            "BFS": {"expanded_nodes": 0, "execution_time": 0, "max_fringe": 0, "count": 0},
-            "UCS": {"expanded_nodes": 0, "execution_time": 0, "max_fringe": 0, "count": 0},
-            "A* with Manhattan Distance": {"expanded_nodes": 0, "execution_time": 0, "max_fringe": 0, "count": 0},
-        }
+            except ValueError as error:
+                print(f"Error with puzzle {puzzle_num}: {error}")
 
-        # Read the CSV results file
-        with open(results_file, mode='r') as file:
-            reader = csv.DictReader(file)
 
-            # Analyze each row
-            for row in reader:
-                strategy = row['Strategy']
-                expanded_nodes = int(row['Expanded Nodes'])
-                execution_time = float(row['Execution Time'])
-                max_fringe_size = int(row['Max Fringe Size'])
+def assess_performance(results_file):
+    """Evaluate and compare performance metrics from recorded results."""
+    strategy_metrics = {
+        "DFS": {"nodes": 0, "time": 0, "fringe": 0, "runs": 0},
+        "BFS": {"nodes": 0, "time": 0, "fringe": 0, "runs": 0},
+        "UCS": {"nodes": 0, "time": 0, "fringe": 0, "runs": 0},
+        "A* with Manhattan Distance": {"nodes": 0, "time": 0, "fringe": 0, "runs": 0},
+    }
 
-                # Accumulate scores
-                Strategies_scores[strategy]["expanded_nodes"] += expanded_nodes
-                Strategies_scores[strategy]["execution_time"] += execution_time
-                Strategies_scores[strategy]["max_fringe"] += max_fringe_size
-                Strategies_scores[strategy]["count"] += 1
+    with open(results_file, 'r') as datafile:
+        results_reader = csv.DictReader(datafile)
 
-        # Calculate average scores
-        for strategy in Strategies_scores:
-            if  Strategies_scores[strategy]["count"] > 0:
-                Strategies_scores[strategy]["expanded_nodes"] /= Strategies_scores[strategy]["count"]
-                Strategies_scores[strategy]["execution_time"] /= Strategies_scores[strategy]["count"]
-                Strategies_scores[strategy]["max_fringe"] /= Strategies_scores[strategy]["count"]
+        for record in results_reader:
+            current_strategy = record['Strategy']
+            strategy_metrics[current_strategy]["nodes"] += int(record['Expanded Nodes'])
+            strategy_metrics[current_strategy]["time"] += float(record['Execution Time'])
+            strategy_metrics[current_strategy]["fringe"] += int(record['Max Fringe Size'])
+            strategy_metrics[current_strategy]["runs"] += 1
 
-        # Determine winners for each metric
-        expanded_winner = min(Strategies_scores, key=lambda h: Strategies_scores[h]["expanded_nodes"])
-        time_winner = min(Strategies_scores, key=lambda h: Strategies_scores[h]["execution_time"])
-        fringe_winner = min(Strategies_scores, key=lambda h: Strategies_scores[h]["max_fringe"])
+    # Calculate averages
+    for method in strategy_metrics:
+        if strategy_metrics[method]["runs"] > 0:
+            for metric in ["nodes", "time", "fringe"]:
+                strategy_metrics[method][metric] /= strategy_metrics[method]["runs"]
 
-        # Print final scores and winners
-        print("\nFinal Scores (Total Expanded Nodes):")
-        for heuristic, metrics in Strategies_scores.items():
-            print(f"{heuristic}: {metrics['expanded_nodes']}")
+    # Determine top performers
+    node_leader = min(strategy_metrics, key=lambda x: strategy_metrics[x]["nodes"])
+    time_leader = min(strategy_metrics, key=lambda x: strategy_metrics[x]["time"])
+    fringe_leader = min(strategy_metrics, key=lambda x: strategy_metrics[x]["fringe"])
 
-        print(
-            f"\nWinner for Least Expanded Nodes: {expanded_winner} with {Strategies_scores[expanded_winner]['expanded_nodes']} total expanded nodes")
+    print("\nAverage Nodes Expanded:")
+    for method, data in strategy_metrics.items():
+        print(f"{method}: {data['nodes']:.1f}")
 
-        print("\nFinal Scores (Average Execution Time):")
-        for heuristic, metrics in Strategies_scores.items():
-            print(f"{heuristic}: {metrics['execution_time']:.4f} seconds")
+    print(f"\nNodes Expanded Champion: {node_leader} ({strategy_metrics[node_leader]['nodes']:.1f} nodes)")
 
-        print(
-            f"\nWinner for Least Execution Time: {time_winner} with {Strategies_scores[time_winner]['execution_time']:.4f} seconds")
+    print("\nAverage Execution Times:")
+    for method, data in strategy_metrics.items():
+        print(f"{method}: {data['time']:.4f}s")
 
-        print("\nFinal Scores (Average Max Fringe Size):")
-        for heuristic, metrics in Strategies_scores.items():
-            print(f"{heuristic}: {metrics['max_fringe']}")
+    print(f"\nSpeed Champion: {time_leader} ({strategy_metrics[time_leader]['time']:.4f}s)")
 
-        print(
-            f"\nWinner for Least Max Fringe Size: {fringe_winner} with {Strategies_scores[fringe_winner]['max_fringe']} size")
+    print("\nAverage Maximum Fringe Sizes:")
+    for method, data in strategy_metrics.items():
+        print(f"{method}: {data['fringe']:.1f}")
+
+    print(f"\nFringe Size Champion: {fringe_leader} ({strategy_metrics[fringe_leader]['fringe']:.1f} units)")
 
 
 if __name__ == "__main__":
-    # Example usage, reading scenarios from a CSV
-    scenarios_file = "scenarios.csv"
-    results_file = "results_task4.csv"
+    puzzle_source = "scenarios.csv"
+    results_output = "results_task4.csv"
 
-    # If the scenarios file does not exist, we generate it.
-    if not os.path.exists(scenarios_file):
-        print(f"{scenarios_file} not found. Generating random puzzles...")
-        create_and_save_puzzles(scenarios_file, num_puzzles=100, moves=25)
+    if not os.path.exists(puzzle_source):
+        print("Generating new puzzle scenarios...")
+        create_and_save_puzzles(puzzle_source, num_puzzles=100, moves=25)
 
-    # Read the puzzles from CSV (assuming they're formatted as arrays)
-    puzzles_df = pd.read_csv(scenarios_file)
-    puzzles = puzzles_df['State'].apply(eval).tolist()
+    puzzle_data = pd.read_csv(puzzle_source)
+    puzzle_collection = puzzle_data['State'].apply(eval).tolist()
 
-    # Run the comparison
-    run_strategic_comparison(puzzles, results_file)
-    analyze_result(results_file)
+    execute_strategy_comparison(puzzle_collection, results_output)
+    assess_performance(results_output)
