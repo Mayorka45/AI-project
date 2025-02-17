@@ -71,140 +71,98 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+
 def depthFirstSearch(problem):
-    """Search the deepest nodes in the search tree first."""
+    """Explore deepest paths first with cycle prevention."""
 
-    # states to be explored (LIFO). holds nodes in form (state, action)
-    frontier = util.Stack()
-    # previously explored states (for path checking), holds states
-    exploredNodes = []
+    # Node storage (LIFO) containing (position, path, level)
+    stateStack = util.Stack()
+    visitedStates = []  # Track processed states
+    depthLimit = 10  # Exploration boundary
 
-    max_depth = 10  # Set a maximum depth to prevent infinite loops
+    fringeTracker = 0  # Was maxFringeSize
+    expansionCounter = 0  # Was nodesExpanded
 
-    maxFringeSize = 0
-    nodesExpanded = 0
-    # define start node
-    startState = problem.getStartState()
-    startNode = (startState, [],0)
+    initial = problem.getStartState()
+    stateStack.push((initial, [], 0))
 
-    frontier.push(startNode)
+    while not stateStack.isEmpty():
+        fringeTracker = max(fringeTracker, len(stateStack.list))
+        position, pathSteps, currentLevel = stateStack.pop()
+        expansionCounter += 1
 
-    while not frontier.isEmpty():
-        maxFringeSize = max(maxFringeSize, len(frontier.list))
-        # begin exploring last (most-recently-pushed) node on frontier
-        currentState, actions, current_depth = frontier.pop()
-        nodesExpanded += 1
+        if position not in visitedStates:
+            visitedStates.append(position)
 
-        if currentState not in exploredNodes:
-            # mark current node as explored
-            exploredNodes.append(currentState)
-
-            if problem.isGoalState(currentState):
-                return actions, maxFringeSize, nodesExpanded
+            if problem.isGoalState(position):
+                return pathSteps, fringeTracker, expansionCounter
             else:
-                # get list of possible successor nodes in
-                # form (successor, action, stepCost)
-                successors = problem.getSuccessors(currentState)
+                for nextPos, move, _ in problem.getSuccessors(position):
+                    updatedPath = pathSteps + [move]
+                    if (currentLevel + 1) <= depthLimit:
+                        stateStack.push((nextPos, updatedPath, currentLevel + 1))
 
-                # push each successor to frontier
-                for succState, succAction, succCost in successors:
-                    newAction = actions + [succAction]
-                    new_depth = current_depth + 1
-                    newNode = (succState, newAction,new_depth)
-
-                    # Prevent exceeding the maximum depth
-                    if new_depth <= max_depth:
-                        frontier.push(newNode)
-
-
-
-    return [], maxFringeSize, nodesExpanded
+    return [], fringeTracker, expansionCounter
 
 
 def breadthFirstSearch(problem):
-    """Search the shallowest nodes in the search tree first."""
+    """Explore nearest nodes first with cost tracking."""
 
-    # to be explored (FIFO)
-    frontier = util.Queue()
+    nodeQueue = util.Queue()  # Was frontier
+    processedStates = []  # Was exploredNodes
+    fringeMax = 0  # Was maxFringeSize
+    nodeCount = 0  # Was nodesExpanded
 
-    # previously expanded states (for cycle checking), holds states
-    exploredNodes = []
+    start = problem.getStartState()
+    nodeQueue.push((start, [], 0))
 
-    maxFringeSize = 0
-    nodesExpanded = 0
+    while not nodeQueue.isEmpty():
+        fringeMax = max(fringeMax, len(nodeQueue.list))
+        currentPos, actions, accumulatedCost = nodeQueue.pop()
+        nodeCount += 1
 
-    startState = problem.getStartState()
-    startNode = (startState, [], 0)  # (state, action, cost)
+        if currentPos not in processedStates:
+            processedStates.append(currentPos)
 
-    frontier.push(startNode)
-
-    while not frontier.isEmpty():
-
-        maxFringeSize = max(maxFringeSize, len(frontier.list))
-        # begin exploring first (earliest-pushed) node on frontier
-        currentState, actions, currentCost = frontier.pop()
-        nodesExpanded += 1
-
-        if currentState not in exploredNodes:
-            # put popped node state into explored list
-            exploredNodes.append(currentState)
-
-            if problem.isGoalState(currentState):
-                return actions, maxFringeSize, nodesExpanded
+            if problem.isGoalState(currentPos):
+                return actions, fringeMax, nodeCount
             else:
-                # list of (successor, action, stepCost)
-                successors = problem.getSuccessors(currentState)
+                for neighbor, direction, cost in problem.getSuccessors(currentPos):
+                    newActions = actions + [direction]
+                    totalCost = accumulatedCost + cost
+                    nodeQueue.push((neighbor, newActions, totalCost))
 
-                for succState, succAction, succCost in successors:
-                    newAction = actions + [succAction]
-                    newCost = currentCost + succCost
-                    newNode = (succState, newAction, newCost)
+    return [], fringeMax, nodeCount
 
-                    frontier.push(newNode)
-
-    return [], maxFringeSize, nodesExpanded
 
 def uniformCostSearch(problem):
-    """Search the node of least total cost first."""
+    """Prioritize minimal cost paths with state tracking."""
 
-    # to be explored (FIFO): holds (item, cost)
-    frontier = util.PriorityQueue()
+    costQueue = util.PriorityQueue()  # Was frontier
+    stateCosts = {}  # Was exploredNodes
+    maxFringe = 0  # Was maxFringeSize
+    processedNodes = 0  # Was nodesExpanded
 
-    # previously expanded states (for cycle checking), holds state:cost
-    exploredNodes = {}
+    origin = problem.getStartState()
+    costQueue.push((origin, [], 0), 0)
 
-    maxFringeSize = 0
-    nodesExpanded = 0
+    while not costQueue.isEmpty():
+        maxFringe = max(maxFringe, len(costQueue.heap))
+        currentPos, path, total = costQueue.pop()
+        processedNodes += 1
 
-    startState = problem.getStartState()
-    startNode = (startState, [], 0)  # (state, action, cost)
+        if problem.isGoalState(currentPos):
+            return path, maxFringe, processedNodes
 
-    frontier.push(startNode, 0)
+        if (currentPos not in stateCosts) or (total < stateCosts.get(currentPos, float('inf'))):
+            stateCosts[currentPos] = total
 
-    while not frontier.isEmpty():
-        maxFringeSize = max(maxFringeSize, len(frontier.heap))
-        # begin exploring first (lowest-cost) node on frontier
-        currentState, actions, currentCost = frontier.pop()
-        nodesExpanded += 1
+            for nextPos, action, stepCost in problem.getSuccessors(currentPos):
+                updatedPath = path + [action]
+                newTotal = total + stepCost
+                costQueue.update((nextPos, updatedPath, newTotal), newTotal)
 
-        if (currentState not in exploredNodes) or (currentCost < exploredNodes[currentState]):
-            # put popped node's state into explored list
-            exploredNodes[currentState] = currentCost
-
-            if problem.isGoalState(currentState):
-                return actions, maxFringeSize, nodesExpanded
-            else:
-                # list of (successor, action, stepCost)
-                successors = problem.getSuccessors(currentState)
-
-                for succState, succAction, succCost in successors:
-                    newAction = actions + [succAction]
-                    newCost = currentCost + succCost
-                    newNode = (succState, newAction, newCost)
-
-                    frontier.update(newNode, newCost)
-
-    return [], maxFringeSize, nodesExpanded
+    return [], maxFringe, processedNodes
 
 
 def h1_misplaced_tiles(state, problem=None):
