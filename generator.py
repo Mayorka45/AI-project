@@ -5,12 +5,9 @@ import random
 from fifteenpuzzle import FifteenPuzzleState
 
 def generateRandomFifteenPuzzle(moves=25):
-    """
-    moves: Number of random moves to apply.
 
-    Generates a random 15-puzzle by performing
-    a sequence of 'moves' random actions starting from a solved puzzle.
-    """
+    #from the goal state shuffles the puzzle to generate random puzzles problems to solve
+
     puzzle = FifteenPuzzleState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0])  # Solved configuration
     for i in range(moves):
         # Apply a random legal move
