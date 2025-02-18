@@ -2,7 +2,7 @@ import csv
 import os
 import time
 import pandas as pd
-from eightpuzzle import EightPuzzleState, EightPuzzleSearchProblem
+from fifteenpuzzle import FifteenPuzzleState, FifteenPuzzleSearchProblem
 from generator import generateRandomFifteenPuzzle, create_and_save_puzzles
 from search import aStarSearch
 from search import depthFirstSearch, breadthFirstSearch, uniformCostSearch, h3_manhattan_distance
@@ -40,8 +40,8 @@ def execute_strategy_comparison(puzzle_set, output_file):
 
             try:
                 valid_puzzle = process_puzzle(puzzle_instance)
-                puzzle_obj = EightPuzzleState(valid_puzzle)
-                problem_instance = EightPuzzleSearchProblem(puzzle_obj)
+                puzzle_obj = FifteenPuzzleState(valid_puzzle)
+                problem_instance = FifteenPuzzleSearchProblem(puzzle_obj)
 
                 method_index = 0
                 for strategy_name, search_method in search_plans:

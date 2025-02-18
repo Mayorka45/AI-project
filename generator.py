@@ -2,7 +2,7 @@
 import os
 import csv
 import random
-from eightpuzzle import EightPuzzleState
+from fifteenpuzzle import FifteenPuzzleState
 
 def generateRandomFifteenPuzzle(moves=25):
     """
@@ -11,7 +11,7 @@ def generateRandomFifteenPuzzle(moves=25):
     Generates a random 15-puzzle by performing
     a sequence of 'moves' random actions starting from a solved puzzle.
     """
-    puzzle = EightPuzzleState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0])  # Solved configuration
+    puzzle = FifteenPuzzleState([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0])  # Solved configuration
     for i in range(moves):
         # Apply a random legal move
         puzzle = puzzle.result(random.choice(puzzle.legalMoves()))

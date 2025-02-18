@@ -1,4 +1,4 @@
-# eightpuzzle.py
+# fifteenpuzzle.py
 # --------------
 # Licensing Information:  You are free to use or extend these projects for
 # educational purposes provided that (1) you do not distribute or publish
@@ -20,7 +20,7 @@ from search import h1_misplaced_tiles, h2_euclidean_distance, h3_manhattan_dista
 
 # Module Classes
 
-class EightPuzzleState:
+class FifteenPuzzleState:
     """
     The Eight Puzzle is described in the course textbook on
     page 64.
@@ -149,7 +149,7 @@ class EightPuzzleState:
 
         # Create a copy of the current eightPuzzle
         # =====Start Change Task 1=====
-        newPuzzle = EightPuzzleState([0]*16)
+        newPuzzle = FifteenPuzzleState([0]*16)
         # =====End Change Task 1=====
         newPuzzle.cells = [values[:] for values in self.cells]
         # And update it to reflect the move
@@ -204,7 +204,7 @@ class EightPuzzleState:
 
 # TODO: Implement The methods in this class
 
-class EightPuzzleSearchProblem(search.SearchProblem):
+class FifteenPuzzleSearchProblem(search.SearchProblem):
     """
       Implementation of a SearchProblem for the  Eight Puzzle domain
 
@@ -240,14 +240,14 @@ class EightPuzzleSearchProblem(search.SearchProblem):
         """
         return len(actions)
 
-EIGHT_PUZZLE_DATA = [[1, 0, 2, 3, 4, 5, 6, 7, 8],
+FIFTEEN_PUZZLE_DATA = [[1, 0, 2, 3, 4, 5, 6, 7, 8],
                      [1, 7, 8, 2, 3, 4, 5, 6, 0],
                      [4, 3, 2, 7, 0, 5, 1, 6, 8],
                      [5, 1, 3, 4, 0, 2, 6, 7, 8],
                      [1, 2, 5, 7, 6, 8, 0, 4, 3],
                      [0, 3, 1, 6, 8, 2, 7, 5, 4]]
 
-def loadEightPuzzle(puzzleNumber):
+def loadFifteenPuzzle(puzzleNumber):
     """
       puzzleNumber: The number of the eight puzzle to load.
 
@@ -265,7 +265,7 @@ def loadEightPuzzle(puzzleNumber):
       | 6 | 7 | 8 |
       -------------
     """
-    return EightPuzzleState(EIGHT_PUZZLE_DATA[puzzleNumber])
+    return FifteenPuzzleState(FIFTEEN_PUZZLE_DATA[puzzleNumber])
 
 def createRandomEightPuzzle(moves=100):
     """
@@ -276,7 +276,7 @@ def createRandomEightPuzzle(moves=100):
       puzzle.
     """
     # =====Start Change Task 1=====
-    puzzle = EightPuzzleState([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0])
+    puzzle = FifteenPuzzleState([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0])
     for i in range(moves):
         # Execute a random legal move
         puzzle = puzzle.result(random.choice(puzzle.legalMoves()))
@@ -287,7 +287,7 @@ if __name__ == '__main__':
     print('A random puzzle:')
     print(puzzle)
 
-    problem = EightPuzzleSearchProblem(puzzle)
+    problem = FifteenPuzzleSearchProblem(puzzle)
     path= search.aStarSearch(problem,heuristic=h1_misplaced_tiles)
     """
     path = search.breadthFirstSearch(problem)

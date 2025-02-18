@@ -4,7 +4,7 @@ import time
 import pandas as pd
 import ast  # Import the ast module for safe evaluation
 from generator import create_and_save_puzzles
-from eightpuzzle import EightPuzzleState,EightPuzzleSearchProblem
+from fifteenpuzzle import FifteenPuzzleState,FifteenPuzzleSearchProblem
 from search import aStarSearch
 from search import h1_misplaced_tiles, h2_euclidean_distance, h3_manhattan_distance, h4_tiles_out
 
@@ -49,10 +49,10 @@ def run_heuristic_comparison(puzzles, results_file):
             try:
                 # Validate and prepare the puzzle state
                 valid_puzzle_state = validate_and_prepare_puzzle(puzzle_state)
-                puzzle = EightPuzzleState(valid_puzzle_state)
+                puzzle = FifteenPuzzleState(valid_puzzle_state)
 
                 # Create the search problem
-                problem = EightPuzzleSearchProblem(puzzle)
+                problem = FifteenPuzzleSearchProblem(puzzle)
 
                 # Track expanded nodes and fringe size locally
                 for name, heuristic in heuristics:
