@@ -15,7 +15,7 @@
 import search
 import random
 
-from search import h1_misplaced_tiles, h2_euclidean_distance, h3_manhattan_distance
+from search import h1_misplaced_tiles, h2_euclidean_distance, h3_manhattan_distance, h4_tiles_out
 
 
 # Module Classes
@@ -288,7 +288,7 @@ if __name__ == '__main__':
     print(puzzle)
 
     problem = FifteenPuzzleSearchProblem(puzzle)
-    path= search.aStarSearch(problem,heuristic=h1_misplaced_tiles)
+    path= search.aStarSearch(problem,heuristic=h4_tiles_out)
     """
     path = search.breadthFirstSearch(problem)
     """   
