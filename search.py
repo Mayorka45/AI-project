@@ -181,7 +181,7 @@ def h1_misplaced_tiles(state, problem=None):
 
 
 def h2_euclidean_distance(state, problem=None):
-    """Computes the Euclidean distance heuristic for the 15-puzzle."""
+    """Computes the Euclidean distance  between the position of each node and its goal position projecting on the x and y axis heuristic for the 15-puzzle."""
 
     total_distance = 0
 
@@ -189,7 +189,8 @@ def h2_euclidean_distance(state, problem=None):
         for col in range(4):
             tile = state.cells[row][col]
             if tile != 0:  # Ignore blank space
-                goal_row, goal_col = divmod(tile - 1, 4)
+                goal_row= (tile-1)//4
+                goal_col= (tile-1)%4
                 total_distance += math.sqrt((goal_row - row) ** 2 + (goal_col - col) ** 2)
 
     return total_distance
