@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(puzzle_source):
         print("Generating new puzzle scenarios...")
-        create_and_save_puzzles(puzzle_source, num_puzzles=100, moves=25)
+        create_and_save_puzzles(puzzle_source, num_puzzles=100, moves=50)
 
     puzzle_data = pd.read_csv(puzzle_source)
     puzzle_collection = puzzle_data['State'].apply(eval).tolist()

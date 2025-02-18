@@ -4,7 +4,7 @@ import csv
 import random
 from fifteenpuzzle import FifteenPuzzleState
 
-def generateRandomFifteenPuzzle(moves=25):
+def generateRandomFifteenPuzzle(moves=50):
 
     #from the goal state shuffles the puzzle to generate random puzzles problems to solve
 
@@ -14,7 +14,7 @@ def generateRandomFifteenPuzzle(moves=25):
         puzzle = puzzle.result(random.choice(puzzle.legalMoves()))
     return puzzle
 
-def create_and_save_puzzles(scenarios_file, num_puzzles, moves=25):
+def create_and_save_puzzles(scenarios_file, num_puzzles, moves=50):
     """
     Creates random 15-puzzles and writes them to a CSV file.
     """

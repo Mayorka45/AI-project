@@ -154,7 +154,7 @@ if __name__ == "__main__":
     # If the scenarios file does not exist, we generate it.
     if not os.path.exists(scenarios_file):
         print(f"{scenarios_file} not found. Generating random puzzles...")
-        create_and_save_puzzles(scenarios_file,100, 25)
+        create_and_save_puzzles(scenarios_file,100, 50)
 
     puzzles_df = pd.read_csv(scenarios_file)
     puzzles = puzzles_df['State'].apply(ast.literal_eval).tolist()  # Use ast.literal_eval for safe evaluation
