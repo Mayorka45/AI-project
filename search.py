@@ -165,6 +165,8 @@ def uniformCostSearch(problem):
     return [], maxFringe, processedNodes
 
 
+# =====Start Change Task 2=====
+
 def h1_misplaced_tiles(state, problem=None):
     misplaced = 0
     goal = [[1, 2, 3, 4],
@@ -219,6 +221,9 @@ def h4_tiles_out(state,problem=None):
                 if(col!=goal_col):
                     misplaced_col+=1
     return misplaced_row + misplaced_col
+
+
+# =====End Change Task 2=====
 
 
 def nullHeuristic(state, problem=None):

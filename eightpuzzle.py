@@ -288,7 +288,7 @@ if __name__ == '__main__':
     print(puzzle)
 
     problem = EightPuzzleSearchProblem(puzzle)
-    path= search.aStarSearch(problem,heuristic=h3_manhattan_distance)
+    path= search.aStarSearch(problem,heuristic=h1_misplaced_tiles)
     """
     path = search.breadthFirstSearch(problem)
     """   
