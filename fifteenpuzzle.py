@@ -286,9 +286,10 @@ if __name__ == '__main__':
     puzzle = createRandomEightPuzzle(25)
     print('A random puzzle:')
     print(puzzle)
-
+    # =====Start Change Task 2=====
     problem = FifteenPuzzleSearchProblem(puzzle)
     path= search.aStarSearch(problem,heuristic=h4_tiles_out)
+    # =====End Change Task 1=====
     """
     path = search.breadthFirstSearch(problem)
     """   
