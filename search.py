@@ -71,6 +71,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+# =====Start Change Task 4=====
 
 def depthFirstSearch(problem):
     """Explore deepest paths first with cycle prevention."""
@@ -163,6 +164,7 @@ def uniformCostSearch(problem):
                 costQueue.update((nextPos, updatedPath, newTotal), newTotal)
 
     return [], maxFringe, processedNodes
+# =====Start Change Task 4=====
 
 
 # =====Start Change Task 2=====
